@@ -242,6 +242,11 @@ class FakeGoogleMapsFlutterPlatform extends GoogleMapsFlutterPlatform {
   }
 
   @override
+  Stream<MapPoiClickEvent> onPoiClick({required int mapId}) {
+    return mapEventStreamController.stream.whereType<MapPoiClickEvent>();
+  }
+
+  @override
   void dispose({required int mapId}) {
     disposed = true;
   }
