@@ -34,7 +34,6 @@ part 'src/marker.dart';
 part 'src/markers.dart';
 part 'src/overlay.dart';
 part 'src/overlays.dart';
-part 'src/point_of_interest.dart';
 part 'src/polygon.dart';
 part 'src/polygons.dart';
 part 'src/polyline.dart';
