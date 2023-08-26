@@ -200,9 +200,20 @@ class GoogleMapController {
     });
     map.onClick.listen((gmaps.IconMouseEvent event) {
       assert(event.latLng != null);
-      _streamController.add(
-        MapTapEvent(_mapId, _gmLatLngToLatLng(event.latLng!)),
-      );
+      if (event.placeId != null) {
+        event.stop();
+        _streamController.add(MapPoiClickEvent(
+            _mapId,
+            PointOfInterest(
+              _gmLatLngToLatLng(event.latLng!),
+              '',
+              event.placeId!,
+            )));
+      } else {
+        _streamController.add(
+          MapTapEvent(_mapId, _gmLatLngToLatLng(event.latLng!)),
+        );
+      }
     });
     map.onRightclick.listen((gmaps.MapMouseEvent event) {
       assert(event.latLng != null);
