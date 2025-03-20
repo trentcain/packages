@@ -552,6 +552,14 @@ void main() {
 
         await testStreamFiltering(stream, event);
       });
+      testWidgets('onPoiClick', (WidgetTester tester) async {
+        final event = MapPoiClickEvent(
+            mapId, LatLng(43.3608, -5.8425), "Some Place", "<somePlaceId>");
+
+        final stream = plugin.onPoiClick(mapId: mapId);
+
+        await _testStreamFiltering(stream, event);
+      });
     });
   });
 }

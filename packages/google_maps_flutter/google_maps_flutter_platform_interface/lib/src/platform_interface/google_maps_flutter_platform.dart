@@ -424,6 +424,11 @@ abstract class GoogleMapsFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('dispose() has not been implemented.');
   }
 
+  /// A poi has been tapped on a map [LatLng, String, String].
+  Stream<MapPoiTapEvent> onPoiTap({required int mapId}) {
+    throw UnimplementedError('onPoiTap() has not been implemented.');
+  }
+
   /// If the last attempt to set the style via [MapConfiguration.style] failed,
   /// returns the error information, otherwise returns null.
   Future<String?> getStyleError({required int mapId}) async {

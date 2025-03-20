@@ -127,6 +127,7 @@ class GoogleMap extends StatefulWidget {
     this.onTap,
     this.onLongPress,
     this.cloudMapId,
+    this.onPoiClick,
   });
 
   /// Callback method for when the map is ready to be used.
@@ -254,6 +255,9 @@ class GoogleMap extends StatefulWidget {
 
   /// Called every time a [GoogleMap] is long pressed.
   final ArgumentCallback<LatLng>? onLongPress;
+
+  /// Called every time a [PointOfInterest] is clicked.
+  final ArgumentCallback<PointOfInterest>? onPoiClick;
 
   /// True if a "My Location" layer should be shown on the map.
   ///
@@ -595,6 +599,14 @@ class _GoogleMapState extends State<GoogleMap> {
       onClusterTap(cluster);
     }
   }
+
+  void onPoiClick(PointOfInterest poi) {
+     assert(poi != null);
+     final ArgumentCallback<PointOfInterest>? onPoiClick = widget.onPoiClick;
+     if (onPoiClick != null) {
+       onPoiClick(poi);
+     }
+   }
 }
 
 /// Builds a [MapConfiguration] from the given [map].

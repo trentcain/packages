@@ -588,6 +588,19 @@ class PlatformBitmapBytesMap {
   final double? height;
 }
 
+
+/// Pigeon equivalent of the PointOfInterest class.
+class PlatformPointOfInterest {
+  PlatformPointOfInterest(
+      {required this.position,
+      required this.name, 
+      required this.placeId});
+
+  final PlatformLatLng position;
+  final String name;
+  final String placeId;
+}
+
 /// Interface for non-test interactions with the native SDK.
 ///
 /// For test-only state queries, see [MapsInspectorApi].
@@ -725,6 +738,9 @@ abstract class MapsCallbackApi {
 
   /// Called when a polyline is tapped.
   void onPolylineTap(String polylineId);
+
+  /// Called when a poi is tapped.
+  void onPoiTap(PlatformPointOfInterest poi);
 
   /// Called to get data for a map tile.
   @async
