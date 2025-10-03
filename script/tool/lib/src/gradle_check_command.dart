@@ -1,4 +1,4 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -20,7 +20,10 @@ final Version minKotlinVersion = Version(1, 7, 10);
 /// A command to enforce gradle file conventions and best practices.
 class GradleCheckCommand extends PackageLoopingCommand {
   /// Creates an instance of the gradle check command.
-  GradleCheckCommand(super.packagesDir);
+  GradleCheckCommand(
+    super.packagesDir, {
+    super.gitDir,
+  });
 
   @override
   final String name = 'gradle-check';
@@ -291,12 +294,11 @@ plugins {
   /// compatibility with apps that use AGP 8+.
   bool _validateNamespace(RepositoryPackage package, String gradleContents,
       {required bool isExample}) {
-    // Regex to validate that either of the following namespace definitions
-    // are found (where the single quotes can be single or double):
-    //  - namespace 'dev.flutter.foo'
+    // Regex to validate that the following namespace definition
+    // is found (where the single quotes can be single or double):
     //  - namespace = 'dev.flutter.foo'
     final RegExp nameSpaceRegex =
-        RegExp('^\\s*namespace\\s+=?\\s*[\'"](.*?)[\'"]', multiLine: true);
+        RegExp('^\\s*namespace\\s+=\\s*[\'"](.*?)[\'"]', multiLine: true);
     final RegExpMatch? nameSpaceRegexMatch =
         nameSpaceRegex.firstMatch(gradleContents);
 
@@ -305,7 +307,7 @@ plugins {
 build.gradle must set a "namespace":
 
     android {
-        namespace 'dev.flutter.foo'
+        namespace = "dev.flutter.foo"
     }
 
 The value must match the "package" attribute in AndroidManifest.xml, if one is
@@ -370,8 +372,8 @@ build.gradle must set an explicit Java compatibility version.
 This can be done either via "sourceCompatibility"/"targetCompatibility":
     android {
         compileOptions {
-            sourceCompatibility JavaVersion.VERSION_11
-            targetCompatibility JavaVersion.VERSION_11
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
         }
     }
 
@@ -421,12 +423,22 @@ for more details.''';
 
   bool _validateCompileSdkUsage(
       RepositoryPackage package, List<String> gradleLines) {
-    final RegExp linePattern = RegExp(r'^\s*compileSdk');
+    final RegExp linePattern = RegExp(r'^\s*compileSdk.*\s+=');
     final RegExp legacySettingPattern = RegExp(r'^\s*compileSdkVersion');
     final String? compileSdkLine = gradleLines
         .firstWhereOrNull((String line) => linePattern.hasMatch(line));
+
     if (compileSdkLine == null) {
-      printError('${indentation}No compileSdk or compileSdkVersion found.');
+      // Equals regex not found check for method pattern.
+      final RegExp compileSpacePattern = RegExp(r'^\s*compileSdk');
+      final String? methodAssignmentLine = gradleLines.firstWhereOrNull(
+          (String line) => compileSpacePattern.hasMatch(line));
+      if (methodAssignmentLine == null) {
+        printError('${indentation}No compileSdk or compileSdkVersion found.');
+      } else {
+        printError(
+            '${indentation}No "compileSdk =" found. Please use property assignment.');
+      }
       return false;
     }
     if (legacySettingPattern.hasMatch(compileSdkLine)) {
@@ -454,6 +466,28 @@ for more details.''';
             'supports $minFlutterVersion.\n'
             "${indentation}Please update the package's minimum Flutter SDK "
             'version to at least 3.27.');
+        return false;
+      }
+    } else {
+      // Extract compileSdkVersion and check if it is higher than flutter.compileSdkVersion.
+      final RegExp numericVersionPattern = RegExp(r'=\s*(\d+)');
+      final RegExpMatch? versionMatch =
+          numericVersionPattern.firstMatch(compileSdkLine);
+
+      if (versionMatch != null) {
+        final int compileSdkVersion = int.parse(versionMatch.group(1)!);
+        const int minCompileSdkVersion = 36;
+
+        if (compileSdkVersion < minCompileSdkVersion) {
+          printError(
+              '${indentation}compileSdk version $compileSdkVersion is too low. '
+              'Minimum required version is $minCompileSdkVersion.\n'
+              "${indentation}Please update this package's compileSdkVersion to at least "
+              '$minCompileSdkVersion or use flutter.compileSdkVersion.');
+          return false;
+        }
+      } else {
+        printError('${indentation}Unable to parse compileSdk version number.');
         return false;
       }
     }
